@@ -1,5 +1,7 @@
 # Getting Started with THEIA Fraud Intelligence
 
+> **⚠️ Proprietary Software Notice:** This project is proprietary and confidential. It is not for personal sharing and is intended for commercial licensing or internal use only. Unauthorized distribution, sharing, or modification is prohibited.
+
 Welcome to THEIA, an agentic AI framework for adaptive financial fraud detection. This guide will help you get up and running quickly.
 
 ## Prerequisites

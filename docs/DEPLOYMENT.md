@@ -1,5 +1,7 @@
 # Deployment Guide for THEIA
 
+> **⚠️ Proprietary Software Notice:** This project is proprietary and confidential. It is not for personal sharing and is intended for commercial licensing or internal use only. Unauthorized distribution, sharing, or modification is prohibited.
+
 **See also:** [PROJECT_STRUCTURE_GUIDE.md](../PROJECT_STRUCTURE_GUIDE.md) for codebase organisation, [CODEBASE_QUALITY.md](../CODEBASE_QUALITY.md) for code standards
 
 ## Pre-Deployment Checklist

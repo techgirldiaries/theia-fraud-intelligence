@@ -1,5 +1,7 @@
 # THEIA Fraud Intelligence
 
+> **⚠️ Proprietary Software Notice:** This project is proprietary and confidential. It is not for personal sharing and is intended for commercial licensing or internal use only. Unauthorized distribution, sharing, or modification is prohibited.
+
 ## Multi-Agent RAG (MARAG) Financial Fraud Detection System
 
 A production-ready fraud intelligence application using 5 specialised multi-agent collaboration and retrieval-augmented generation (MARAG). Features a 16-phase detection pipeline, multi-dataset benchmarking and comprehensive visualisation system.
