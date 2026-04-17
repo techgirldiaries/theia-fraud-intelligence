@@ -1,6 +1,6 @@
 # Testing Guide for THEIA
 
-**See also:** [PROJECT_STRUCTURE_GUIDE.md](../PROJECT_STRUCTURE_GUIDE.md) for test file organisation, [CODEBASE_QUALITY.md](../CODEBASE_QUALITY.md) for quality standards
+**See also:** [PROJECT_STRUCTURE_GUIDE.md](../PROJECT_STRUCTURE_GUIDE.md) for test file organisation
 
 ## Test Structure
 

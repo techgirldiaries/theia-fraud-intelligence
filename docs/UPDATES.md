@@ -1,5 +1,7 @@
 # Updates & Maintenance Guide for THEIA
 
+> **Proprietary Software Notice:** This project is proprietary and confidential. It is not for personal sharing and is intended for commercial licensing or internal use only. Unauthorised distribution, sharing or modification is prohibited.
+
 ## Version Updates
 
 ### Package Updates
@@ -107,8 +109,8 @@ git commit -m "fix: description (fixes #123)"
 
 If backend database schema changes:
 
-1. Notify all developers
-2. Coordinate with backend team
+1. Notify the developer
+2. Coordinate with the developer
 3. Test migration scripts locally
 4. Create rollback procedures
 5. Document changes in changelog
@@ -130,19 +132,19 @@ If backend database schema changes:
 
 ## Communication
 
-### Update Announcements
+### Internal Update Announcements
 
-- Notify team 24 hours before deployment
-- Post in team channels with change summary
-- Include rollback plan
-- Document any downtime
+- Document all changes in version control
+- Maintain audit trail of modifications
+- Keep release notes for internal tracking only
+- Ensure confidentiality of all communications regarding updates and features
 
 ### Incident Response
 
-- Immediate notification on critical issues
-- Post-incident review within 24 hours
+- Log critical issues for internal reference
+- Conduct post-incident reviews internally
 - Update documentation with learnings
-- Adjust monitoring as needed
+- Maintain secure record of all incidents
 
 ## Backup & Recovery
 
@@ -176,16 +178,21 @@ If backend database schema changes:
 - Review deployment logs
 - Test rollback procedure
 
+## Confidentiality & IP Protection
+
+- All modifications and updates are confidential
+- Do not distribute, share or republish this codebase
+- Maintain secure version control with restricted access
+- Document all contributors for licensing purposes
+- Preserve all copyright and proprietary notices
+
 ## Future Roadmap
 
-- Automated testing improvements
-- Performance optimisation initiatives
-- Enhanced monitoring dashboards
-- Advanced reporting features
-- API versioning strategy
+- Planned enhancements and features (internal)
+- Performance optimization initiatives
+- Advanced monitoring capabilities
+- Enterprise feature expansions
 
-## Support Contacts
+## License & Usage
 
-- **Technical Lead:** [Contact info]
-- **DevOps:** [Contact info]
-- **Security:** [Contact info]
+This software is licensed for authorised use only. Unauthorized reproduction, distribution, or modification is strictly prohibited. For licensing inquiries or authorised usage, contact the copyright holder.

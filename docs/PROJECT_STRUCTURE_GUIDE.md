@@ -254,5 +254,3 @@ Ensure path aliases are configured to support the new structure:
 - **Add new utilities** to `core/utils/`
 - **New types** go to `config/types.ts` or feature-specific location
 - **New state logic** goes to appropriate `state/` file
-
-This structure supports both current development needs and future scalability.
