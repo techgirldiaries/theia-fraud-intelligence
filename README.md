@@ -387,7 +387,7 @@ VITE_WORKFORCE_ID=...
 
 All limitations are academically justified, well-documented and represent common industry constraints rather than implementation failures.
 
-## Future Enhancements
+## Future Roadmap
 
 1. **Evidence Network Graph**
    - Interactive agent correlation visualisation
@@ -404,6 +404,13 @@ All limitations are academically justified, well-documented and represent common
 4. **Advanced MARAG Panel**
    - Expandable agent findings
    - Evidence drill-down
+
+5. **Planned enhancements and features (internal)**
+   - Performance optimization initiatives
+   - Advanced monitoring capabilities
+   - Enterprise feature expansions
+6. **Real-time transaction authorisation** 
+   - Immediate blocking/approval decisions at scale for high-throughput payment networks
 
 ## Support & Contact
 
