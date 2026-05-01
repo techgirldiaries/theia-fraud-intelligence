@@ -37,30 +37,36 @@ function adaptBenchmarkingResults(
   const processingTimes: Record<string, string> = {};
   const qualityScores: Record<string, number> = {};
 
-  Object.entries(results.dataset_comparison.performance_metrics).forEach(
-    ([dataset, metrics]) => {
-      performanceMetrics[dataset] = {
-        precision: (metrics as any).precision,
-        recall: (metrics as any).recall,
-        f1Score: (metrics as any).f1_score,
-        aucRoc: (metrics as any).auc_roc,
-      };
-    },
-  );
+  if (results?.dataset_comparison?.performance_metrics) {
+    Object.entries(results.dataset_comparison.performance_metrics).forEach(
+      ([dataset, metrics]) => {
+        performanceMetrics[dataset] = {
+          precision: (metrics as any).precision,
+          recall: (metrics as any).recall,
+          f1Score: (metrics as any).f1_score,
+          aucRoc: (metrics as any).auc_roc,
+        };
+      },
+    );
+  }
 
-  Object.entries(results.dataset_comparison.processing_time_comparison).forEach(
-    ([dataset, time]) => {
+  if (results?.dataset_comparison?.processing_time_comparison) {
+    Object.entries(
+      results.dataset_comparison.processing_time_comparison,
+    ).forEach(([dataset, time]) => {
       processingTimes[dataset] = time as string;
-    },
-  );
+    });
+  }
 
-  Object.entries(results.dataset_comparison.data_quality_scores).forEach(
-    ([dataset, score]) => {
-      qualityScores[dataset] = score as number;
-    },
-  );
+  if (results?.dataset_comparison?.data_quality_scores) {
+    Object.entries(results.dataset_comparison.data_quality_scores).forEach(
+      ([dataset, score]) => {
+        qualityScores[dataset] = score as number;
+      },
+    );
+  }
 
-  const statisticalSignificance = results.statistical_significance
+  const statisticalSignificance = results?.statistical_significance
     ?.accuracy_differences
     ? Object.entries(results.statistical_significance.accuracy_differences).map(
         ([comparison, data]) => ({
@@ -73,13 +79,13 @@ function adaptBenchmarkingResults(
     : [];
 
   return {
-    datasetsAnalyzed: results.dataset_comparison.datasets_analyzed,
+    datasetsAnalyzed: results?.dataset_comparison?.datasets_analyzed || [],
     performanceMetrics,
     processingTimes,
     qualityScores,
     statisticalSignificance,
-    bestPerformingDataset: results.best_performing_dataset,
-    recommendations: results.recommendations,
+    bestPerformingDataset: results?.best_performing_dataset || "",
+    recommendations: results?.recommendations || [],
   };
 }
 
