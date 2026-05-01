@@ -50,7 +50,7 @@ function parseMarkdown(text: string): string {
     ) // H2
     .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>') // H1
     .replace(/^[-*+] (.*?)$/gm, '<li class="ml-4 list-disc">$1</li>') // Bullet points
-    .replace(/^(\d+)\. (.*?)$/gm, '<li class="ml-4 list-decimal">$2</li>') // Numbered lists
+    .replace(/^(\d+)\. (.*?)$/gm, '<li class="ml-4 list-disc">$2</li>') // Numbered lists → bullet points
     .replace(/\n\n/g, '</p><p class="mt-3">') // Paragraph breaks
     .replace(/\n/g, "<br>"); // Line breaks
 

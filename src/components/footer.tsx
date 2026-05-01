@@ -552,9 +552,18 @@ export function Footer() {
           const uploadPromises = selectedFiles.map((file) =>
             client.value?.uploadTempFile(file),
           );
-          const previewPromises = selectedFiles.map((file) =>
-            getFilePreview(file),
-          );
+          const previewPromises = selectedFiles.map((file) => {
+            // For large files, skip preview to avoid I/O competition
+            if (file.size > 200 * 1024 * 1024) {
+              // 200 MB
+              return Promise.resolve({
+                preview: "",
+                format: "",
+                isPartial: false,
+              });
+            }
+            return getFilePreview(file);
+          });
 
           const uploadResults = await Promise.all(uploadPromises);
           uploadedAttachments = uploadResults.filter(

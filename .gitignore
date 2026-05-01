@@ -3,6 +3,7 @@ datasets/
 
 # Environment variables
 .env
+*.rai
 
 # Logs
 logs
