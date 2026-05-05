@@ -337,10 +337,10 @@ export function exponentialSmoothing(
   const residualStd = Math.sqrt(residualVar);
 
   // 95% CI: ±1.96 * std
-  const confidenceIntervals = forecast.map((f) => [
+  const confidenceIntervals: [number, number][] = forecast.map((f) => [
     f - 1.96 * residualStd,
     f + 1.96 * residualStd,
-  ]);
+  ] as [number, number]);
 
   return { forecast, confidenceIntervals };
 }
@@ -390,10 +390,10 @@ export function doubleExponentialSmoothing(
     residuals.reduce((sum, r) => sum + r ** 2, 0) / (residuals.length || 1);
   const residualStd = Math.sqrt(residualVar);
 
-  const confidenceIntervals = forecast.map((f) => [
+  const confidenceIntervals: [number, number][] = forecast.map((f) => [
     f - 1.96 * residualStd,
     f + 1.96 * residualStd,
-  ]);
+  ] as [number, number]);
 
   return { forecast, confidenceIntervals };
 }

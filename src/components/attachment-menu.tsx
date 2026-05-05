@@ -5,6 +5,7 @@ import {
   FileText,
   Folder,
   History,
+  Link,
   Paperclip,
   Pen,
   Upload,
@@ -24,6 +25,7 @@ export interface RecentFile {
 
 interface AttachmentMenuProps {
   onFileSelect: () => void;
+  onAddUrl?: (url: string, label: string) => void;
   onAddText?: () => void;
   onDrawSketch?: () => void;
   onOpenRecent?: () => void;
@@ -38,6 +40,7 @@ interface AttachmentMenuProps {
 
 export function AttachmentMenu({
   onFileSelect,
+  onAddUrl,
   onAddText,
   onDrawSketch,
   onOpenRecent,
@@ -49,6 +52,9 @@ export function AttachmentMenu({
 }: AttachmentMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showRecentPanel, setShowRecentPanel] = useState(false);
+  const [showUrlPanel, setShowUrlPanel] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -57,6 +63,9 @@ export function AttachmentMenu({
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setShowRecentPanel(false);
+        setShowUrlPanel(false);
+        setUrlInput("");
+        setUrlError(null);
       }
     };
 
@@ -103,6 +112,36 @@ export function AttachmentMenu({
     setShowRecentPanel(true);
   };
 
+  const handleOpenUrlPanel = () => {
+    setShowUrlPanel(true);
+  };
+
+  const handleSubmitUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) {
+      setUrlError("Please enter a URL.");
+      return;
+    }
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        setUrlError("URL must start with http:// or https://");
+        return;
+      }
+      const pathParts = parsed.pathname.split("/").filter(Boolean);
+      const last = pathParts[pathParts.length - 1];
+      const label =
+        last && last.includes(".") ? decodeURIComponent(last) : parsed.hostname;
+      onAddUrl?.(trimmed, label);
+      setIsOpen(false);
+      setShowUrlPanel(false);
+      setUrlInput("");
+      setUrlError(null);
+    } catch {
+      setUrlError("Invalid URL. Please include https://");
+    }
+  };
+
   const handleRecentFileSelect = (file: RecentFile) => {
     setIsOpen(false);
     setShowRecentPanel(false);
@@ -113,9 +152,17 @@ export function AttachmentMenu({
     {
       icon: Upload,
       label: "Upload a file",
-      description: "CSV, JSON, or other data files",
+      description: "CSV, Excel, JSON, PDF, DOCX, Parquet and more",
       onClick: handleFileSelect,
       enabled: true,
+    },
+    {
+      icon: Link,
+      label: "Paste a link",
+      description: "Add a URL to a dataset or document",
+      onClick: handleOpenUrlPanel,
+      enabled: true,
+      hasSubPanel: true,
     },
     {
       icon: Cloud,
@@ -188,7 +235,12 @@ export function AttachmentMenu({
         type="button"
         onClick={() => {
           setIsOpen(!isOpen);
-          if (isOpen) setShowRecentPanel(false);
+          if (isOpen) {
+            setShowRecentPanel(false);
+            setShowUrlPanel(false);
+            setUrlInput("");
+            setUrlError(null);
+          }
         }}
         disabled={disabled}
         class={`p-2.5 rounded-full transition-colors cursor-pointer outline-indigo-500 outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${
@@ -203,8 +255,53 @@ export function AttachmentMenu({
 
       {isOpen && (
         <div class="absolute bottom-full left-0 mb-2 w-72 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          {/* Recent Files sub-panel */}
-          {showRecentPanel ? (
+          {/* URL input sub-panel */}
+          {showUrlPanel ? (
+            <>
+              <div class="flex items-center gap-x-2 px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-700">
+                <button
+                  type="button"
+                  onClick={() => { setShowUrlPanel(false); setUrlInput(""); setUrlError(null); }}
+                  class="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 transition-colors"
+                  aria-label="Back"
+                >
+                  <ChevronLeft size={16} strokeWidth={2} />
+                </button>
+                <span class="text-sm font-semibold text-zinc-900 dark:text-white">
+                  Paste a link
+                </span>
+              </div>
+              <div class="p-3 space-y-2">
+                <input
+                  type="url"
+                  placeholder="https://example.com/transactions.csv"
+                  value={urlInput}
+                  onInput={(e) => {
+                    setUrlInput((e.target as HTMLInputElement).value);
+                    setUrlError(null);
+                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSubmitUrl(); } }}
+                  class="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:border-indigo-400 dark:focus:border-indigo-500 transition-colors"
+                  autoFocus
+                />
+                {urlError && (
+                  <p class="text-xs text-red-500 dark:text-red-400">{urlError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSubmitUrl}
+                  class="w-full py-2 px-3 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Add link
+                </button>
+              </div>
+              <div class="border-t border-zinc-200 dark:border-zinc-700 px-3 py-2 bg-zinc-50 dark:bg-zinc-900">
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                  Supports CSV, Excel, JSON, PDF, DOCX, Parquet and more
+                </p>
+              </div>
+            </>
+          ) : showRecentPanel ? (
             <>
               <div class="flex items-center gap-x-2 px-3 py-2.5 border-b border-zinc-200 dark:border-zinc-700">
                 <button
@@ -324,7 +421,7 @@ export function AttachmentMenu({
 
               <div class="border-t border-zinc-200 dark:border-zinc-700 px-3 py-2 bg-zinc-50 dark:bg-zinc-900">
                 <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                  Supported: CSV, JSON, TXT, TSV, LOG
+                  Supported: CSV, Excel, JSON, PDF, DOCX, Parquet, TXT, TSV
                 </p>
               </div>
             </>

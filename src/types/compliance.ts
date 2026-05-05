@@ -3,7 +3,7 @@
  * Theia Fraud Intelligence - Regulatory Compliance Architecture
  *
  * This module defines the compliance verification framework, including
- * compliance checks, regulatory status, and evidence tracking for
+ * compliance checks, regulatory status and evidence tracking for
  * regulatory reporting and audit purposes.
  */
 

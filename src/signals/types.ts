@@ -40,7 +40,7 @@ export type PerformanceMetric = {
   duration?: number;
   status: string;
   riskScore?: number;
-  agentContributions: string | undefined;
+  agentContributions: number | undefined;
 };
 
 export type FraudStats = {

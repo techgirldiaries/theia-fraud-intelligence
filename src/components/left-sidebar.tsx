@@ -37,7 +37,7 @@ import { logAuditEntry } from "@/signals/actions";
 export function LeftSidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeItem, setActiveItem] = useState<string | null>(null);
-  const sidebarRef = useRef<HTMLElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Media query hook
   const useMediaQuery = (query: string) => {
@@ -144,6 +144,7 @@ export function LeftSidebar() {
     showAuditLog.value = false;
     showQuickActions.value = false;
     showSettings.value = false;
+    showPerformanceDashboard.value = false;
     splitScreenMode.value = false;
     setActiveItem("new-chat");
     logAuditEntry("view", "Started new chat from sidebar");
@@ -193,6 +194,7 @@ export function LeftSidebar() {
     showAuditLog.value = false;
     showQuickActions.value = false;
     showSettings.value = false;
+    showPerformanceDashboard.value = false;
     splitScreenMode.value = false;
     // Toggle file manager
     showFileManager.value = !showFileManager.value;
@@ -207,6 +209,7 @@ export function LeftSidebar() {
     showAuditLog.value = false;
     showQuickActions.value = false;
     showSettings.value = false;
+    showPerformanceDashboard.value = false;
     splitScreenMode.value = false;
     // Toggle reports
     showReports.value = !showReports.value;

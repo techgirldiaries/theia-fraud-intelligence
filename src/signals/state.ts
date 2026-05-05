@@ -8,6 +8,7 @@ import {
   loadMetricsFromStorage,
   saveChatSessionToHistory,
 } from "./storage";
+import { initializeDatasets } from "./dataset-manager";
 import type {
   BenchmarkResults,
   ChatSession,
@@ -42,6 +43,22 @@ export const messages = signal<Message[]>([]);
 export const uploadedDatasets = signal<DatasetInfo[]>(
   loadDatasetsFromStorage(),
 );
+
+// ── Initialize datasets from IndexedDB on app startup ─────────────────────────
+// This happens asynchronously, so datasets populate gradually
+if (typeof window !== "undefined") {
+  void initializeDatasets().then((idbDatasets) => {
+    if (idbDatasets.length > 0) {
+      // Use IndexedDB datasets
+      uploadedDatasets.value = idbDatasets;
+    } else if (uploadedDatasets.value.length > 0) {
+      // Fall back to localStorage datasets (legacy)
+      console.log(
+        "Using datasets from localStorage (legacy, should migrate to IndexedDB)",
+      );
+    }
+  });
+}
 export const performanceMetrics = signal<PerformanceMetric[]>(
   loadMetricsFromStorage(),
 );
@@ -125,7 +142,10 @@ export const latestEnhancedReport = signal<EnhancedFraudReport | null>(null);
 /** Qualitative evaluation derived from latestEnhancedReport */
 export const qualitativeEvaluation = signal<QualitativeEvaluation | null>(null);
 /** Per-dataset qualitative evaluations keyed by dataset name — same pipeline, every dataset */
-export const perDatasetEvaluations = signal<Record<string, PerDatasetEvaluation> | null>(null);
+export const perDatasetEvaluations = signal<Record<
+  string,
+  PerDatasetEvaluation
+> | null>(null);
 /** Live phase progress translated from phase_results in the latest report */
 export const liveCaseProgress = signal<LiveCaseProgress | null>(null);
 /** Metadata about the streaming / parse lifecycle */
@@ -155,15 +175,29 @@ export const fraudStats = computed<FraudStats>(() => {
   const totalAnalyzed = metrics.length;
 
   if (totalAnalyzed === 0)
-    return { totalAnalyzed: 0, highRisk: 0, mediumRisk: 0, lowRisk: 0, avgResponseTime: 0, successRate: 0 };
+    return {
+      totalAnalyzed: 0,
+      highRisk: 0,
+      mediumRisk: 0,
+      lowRisk: 0,
+      avgResponseTime: 0,
+      successRate: 0,
+    };
 
   return {
     totalAnalyzed,
     highRisk: metrics.filter((m) => (m.riskScore ?? 0) >= 70).length,
-    mediumRisk: metrics.filter((m) => (m.riskScore ?? 0) >= 45 && (m.riskScore ?? 0) < 70).length,
+    mediumRisk: metrics.filter(
+      (m) => (m.riskScore ?? 0) >= 45 && (m.riskScore ?? 0) < 70,
+    ).length,
     lowRisk: metrics.filter((m) => (m.riskScore ?? 0) < 45).length,
-    avgResponseTime: metrics.reduce((sum, m) => sum + (m.duration ?? 0), 0) / totalAnalyzed,
-    successRate: (metrics.filter((m) => m.status === "complete" || m.status === "success").length / totalAnalyzed) * 100,
+    avgResponseTime:
+      metrics.reduce((sum, m) => sum + (m.duration ?? 0), 0) / totalAnalyzed,
+    successRate:
+      (metrics.filter((m) => m.status === "complete" || m.status === "success")
+        .length /
+        totalAnalyzed) *
+      100,
   };
 });
 

@@ -6,7 +6,7 @@ interface PerformanceMetric {
   status: string;
   duration?: number;
   riskScore?: number;
-  agentContributions?: string;
+  agentContributions?: number;
 }
 
 interface PerformanceDashboardProps {

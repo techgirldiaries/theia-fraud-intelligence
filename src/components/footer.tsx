@@ -1,9 +1,10 @@
 import type { Attachment } from "@relevanceai/sdk";
-import { Clock, Mic, MicOff, Paperclip, SendHorizonal, X } from "lucide-react";
+import { Clock, Link as LinkIcon, Mic, MicOff, Paperclip, SendHorizonal, X } from "lucide-react";
 import type { SubmitEventHandler } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { AttachmentMenu, type RecentFile } from "@/components/attachment-menu";
 import { ModeSelector } from "@/components/mode-selector";
+import { saveUploadedFile } from "@/signals/dataset-manager";
 import {
   addDataset,
   agent,
@@ -46,9 +47,12 @@ const ALLOWED_MIME_TYPES = new Set([
   "text/plain",
   "text/tab-separated-values",
   "application/vnd.ms-excel",
-  "application/octet-stream", // some browsers report this for .csv
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/pdf",
+  "application/octet-stream",
 ]);
-const ALLOWED_EXTENSIONS = /\.(csv|json|txt|log|tsv)$/i;
+const ALLOWED_EXTENSIONS = /\.(csv|json|txt|log|tsv|xlsx|xls|docx|pdf|parquet)$/i;
 const SUBMIT_COOLDOWN_MS = 2_000;
 const MAX_PREVIEW_READ_BYTES = 256 * 1024; // 256 KB
 const MAX_PREVIEW_LINES = 50;
@@ -79,6 +83,9 @@ export function Footer() {
   const [selectedRecentFiles, setSelectedRecentFiles] = useState<RecentFile[]>(
     [],
   );
+  const [linkedUrls, setLinkedUrls] = useState<
+    { id: string; url: string; label: string }[]
+  >([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
@@ -235,7 +242,7 @@ export function Footer() {
     const mimeOk = ALLOWED_MIME_TYPES.has(file.type);
     const extOk = ALLOWED_EXTENSIONS.test(file.name);
     if (!mimeOk && !extOk)
-      return `"${file.name}" is not an accepted file type (CSV, JSON, TXT, TSV).`;
+      return `"${file.name}" is not an accepted file type (CSV, JSON, TXT, TSV, Excel, DOCX, PDF, Parquet).`;
     return null;
   }, []);
 
@@ -375,6 +382,14 @@ export function Footer() {
       return { ...(await readTXTPreview(file)), format: "text" };
     } else if (fileName.endsWith(".tsv")) {
       return { ...(await readTSVPreview(file)), format: "tsv" };
+    } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+      return { preview: "", format: "excel", isPartial: false };
+    } else if (fileName.endsWith(".docx")) {
+      return { preview: "", format: "docx", isPartial: false };
+    } else if (fileName.endsWith(".pdf")) {
+      return { preview: "", format: "pdf", isPartial: false };
+    } else if (fileName.endsWith(".parquet")) {
+      return { preview: "", format: "parquet", isPartial: false };
     } else {
       return { preview: "", format: "unknown", isPartial: false };
     }
@@ -422,6 +437,27 @@ export function Footer() {
 
   const removeRecentFile = useCallback((index: number) => {
     setSelectedRecentFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleAddUrl = useCallback(
+    (url: string, label: string) => {
+      setLinkedUrls((prev) => {
+        if (prev.some((l) => l.url === url)) return prev;
+        if (
+          prev.length + selectedFiles.length + selectedRecentFiles.length >=
+          MAX_FILES
+        ) {
+          showToast(`Maximum ${MAX_FILES} items per submission.`, "error");
+          return prev;
+        }
+        return [...prev, { id: `url-${Date.now()}`, url, label }];
+      });
+    },
+    [selectedFiles, selectedRecentFiles],
+  );
+
+  const removeLinkedUrl = useCallback((index: number) => {
+    setLinkedUrls((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleInput = useCallback(() => {
@@ -525,7 +561,8 @@ export function Footer() {
       if (
         !message?.trim() &&
         selectedFiles.length === 0 &&
-        selectedRecentFiles.length === 0
+        selectedRecentFiles.length === 0 &&
+        linkedUrls.length === 0
       ) {
         return;
       }
@@ -577,9 +614,17 @@ export function Footer() {
             `Uploaded ${selectedFiles.length} file(s): ${selectedFiles.map((f) => f.name).join(", ")}`,
           );
 
-          // Store dataset info for multi-agent access
-          uploadedAttachments.forEach((attachment, index) => {
+          // Store dataset info for multi-agent access + persist in IndexedDB
+          uploadedAttachments.forEach(async (attachment, index) => {
             const file = selectedFiles[index];
+
+            // Store file in IndexedDB for persistence
+            try {
+              await saveUploadedFile(file);
+            } catch (error) {
+              console.warn("Failed to store file in IndexedDB:", error);
+            }
+
             addDataset({
               id: `dataset-${Date.now()}-${index}`,
               fileName: attachment.fileName,
@@ -602,6 +647,17 @@ export function Footer() {
                 ? "Preview excerpt"
                 : "Preview";
               fileDetail += `\n  ${previewHeading}:\n\`\`\`${previewFormat}\n${previews[index].preview}\n\`\`\``;
+            } else {
+              const formatNotes: Record<string, string> = {
+                excel:
+                  "Excel workbook — fetch URL and parse with pandas.read_excel() or openpyxl",
+                docx: "Word document — fetch URL and extract text with python-docx",
+                pdf: "PDF document — fetch URL and extract text with pdfplumber or PyPDF2",
+                parquet:
+                  "Parquet file — fetch URL and parse with pandas.read_parquet() or pyarrow",
+              };
+              const note = formatNotes[previews[index].format];
+              if (note) fileDetail += `\n  Format: ${note}`;
             }
             fileDetailsWithPreviews.push(fileDetail);
           });
@@ -634,6 +690,17 @@ export function Footer() {
           fileDetail += `\n  Preview excerpt:\n\`\`\`${previewFormat}\n${recentFile.preview}\n\`\`\``;
         }
         fileDetailsWithPreviews.push(fileDetail);
+      }
+
+      // Append linked URLs — no upload needed, pass URL directly to the agent
+      for (const linked of linkedUrls) {
+        uploadedAttachments = [
+          ...uploadedAttachments,
+          { fileUrl: linked.url, fileName: linked.label } as Attachment,
+        ];
+        fileDetailsWithPreviews.push(
+          `- File: ${linked.label}\n  URL: ${linked.url}\n  Format: External link — fetch and parse based on file extension or content type`,
+        );
       }
 
       // Build message with file information
@@ -694,13 +761,13 @@ export function Footer() {
       } else if (agent.value) {
         if (task.value) {
           t = await agent.value.sendMessage(
-            message?.trim() || "[Files attached]",
+            messageText || "[Files attached]",
             uploadedAttachments,
             task.value,
           );
         } else {
           t = await agent.value.sendMessage(
-            message?.trim() || "[Files attached]",
+            messageText || "[Files attached]",
             uploadedAttachments,
           );
         }
@@ -721,9 +788,10 @@ export function Footer() {
       }
       setSelectedFiles([]);
       setSelectedRecentFiles([]);
+      setLinkedUrls([]);
       setError(null);
     },
-    [input, selectedFiles, selectedRecentFiles, isUploading],
+    [input, selectedFiles, selectedRecentFiles, linkedUrls, isUploading],
   );
 
   // Cloud storage handlers
@@ -801,7 +869,7 @@ export function Footer() {
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
-          {(selectedFiles.length > 0 || selectedRecentFiles.length > 0) && (
+          {(selectedFiles.length > 0 || selectedRecentFiles.length > 0 || linkedUrls.length > 0) && (
             <div class="flex flex-wrap gap-2">
               {selectedFiles.map((file, index) => (
                 <div
@@ -840,6 +908,23 @@ export function Footer() {
                   </button>
                 </div>
               ))}
+              {linkedUrls.map((linked, index) => (
+                <div
+                  key={linked.id}
+                  class="flex items-center gap-x-1.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-full text-sm text-emerald-700 dark:text-emerald-300 transition-colors"
+                >
+                  <LinkIcon size={12} strokeWidth={2} class="shrink-0 opacity-70" />
+                  <span class="truncate max-w-50">{linked.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeLinkedUrl(index)}
+                    class="p-0.5 hover:bg-emerald-100 dark:hover:bg-emerald-900 rounded-full transition-colors"
+                    aria-label={`Remove ${linked.label}`}
+                  >
+                    <X size={14} strokeWidth={2} />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
           {isUploading && (
@@ -854,6 +939,7 @@ export function Footer() {
               ref={fileInput}
               type="file"
               multiple
+              accept=".csv,.json,.txt,.log,.tsv,.xlsx,.xls,.docx,.pdf,.parquet"
               class="hidden"
               onChange={handleFileChange}
               aria-label="file input"
@@ -862,6 +948,7 @@ export function Footer() {
             {/* Attachment Menu */}
             <AttachmentMenu
               onFileSelect={handleFileSelect}
+              onAddUrl={handleAddUrl}
               onConnectGoogleDrive={handleConnectGoogleDrive}
               onConnectOneDrive={handleConnectOneDrive}
               recentFiles={recentFilesForMenu}

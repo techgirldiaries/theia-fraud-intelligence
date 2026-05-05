@@ -1,5 +1,5 @@
 /**
- * Type definitions for Multi-Agent RAG (MARAG) System
+ * Type definitions for TheiaMulti-Agent RAG (MARAG) System
  * Theia Fraud Intelligence
  */
 

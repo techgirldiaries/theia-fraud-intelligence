@@ -1,6 +1,6 @@
 /**
  * Backend Integration Testing Helper
- * Tests MARAG workforce output against UI expectations
+ * Tests Theia workforce output against UI expectations
  */
 
 import type { EnhancedFraudReport } from "@/types/fraud-report";

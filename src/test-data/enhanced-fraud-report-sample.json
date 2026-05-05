@@ -79,7 +79,7 @@
         "fraud_ring_probability": 0.67
       },
       "BARA_findings": {
-        "behavioral_anomalies": [
+        "behavioural_anomalies": [
           "Device switching pattern",
           "Timing inconsistencies"
         ],

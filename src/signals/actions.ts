@@ -121,6 +121,11 @@ export function getAuditLogs(): AuditLogEntry[] {
 
 // ── Datasets ──────────────────────────────────────────────────────────────────
 
+import {
+  deleteStoredDataset,
+  type HybridDatasetMetadata,
+} from "./dataset-manager";
+
 export function addDataset(dataset: DatasetInfo) {
   uploadedDatasets.value = [...uploadedDatasets.value, dataset];
   showToast(`Dataset "${dataset.fileName}" uploaded successfully`, "success");
@@ -131,10 +136,21 @@ export function getActiveDataset(): DatasetInfo | null {
   return datasets.length > 0 ? datasets[datasets.length - 1] : null;
 }
 
-export function deleteDataset(datasetId: string) {
+export async function deleteDataset(datasetId: string) {
   uploadedDatasets.value = uploadedDatasets.value.filter(
     (d) => d.id !== datasetId,
   );
+
+  // Also delete from IndexedDB if it's stored there
+  const dataset = uploadedDatasets.value.find((d) => d.id === datasetId);
+  if (dataset && (dataset as HybridDatasetMetadata).source === "indexeddb") {
+    try {
+      await deleteStoredDataset(datasetId);
+    } catch (error) {
+      console.warn("Failed to delete from IndexedDB:", error);
+    }
+  }
+
   showToast("Dataset deleted", "success");
   logAuditEntry("delete", `Deleted dataset: ${datasetId}`);
 }
@@ -144,7 +160,7 @@ export function deleteDataset(datasetId: string) {
 export function startPerformanceTracking(taskId: string): void {
   performanceMetrics.value = [
     ...performanceMetrics.value,
-    { taskId, startTime: new Date(), status: "in_progress" },
+    { taskId, startTime: new Date(), status: "in_progress", agentContributions: undefined },
   ];
 }
 

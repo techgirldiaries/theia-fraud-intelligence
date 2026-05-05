@@ -41,8 +41,7 @@ export function MannWhitneyResultsTable({
   }
 
   const metrics = Object.entries(results);
-  const significantCount = metrics.filter((_, item) => {
-    const result = item[1];
+  const significantCount = metrics.filter(([, result]) => {
     const pValue = result.p_value_bonferroni ?? result.p_value;
     return pValue < alpha;
   }).length;

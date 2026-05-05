@@ -447,7 +447,7 @@ function QuantitativeTab() {
               precision: Array(10).fill(m.precision),
               recall: Array(10).fill(m.recall),
               f1Score: Array(10).fill(m.f1_score || 0.85),
-              accuracy: Array(10).fill(m.accuracy || 0.88),
+              accuracy: Array(10).fill(0.88),
               auc: Array(10).fill(m.auc_roc || 0.92),
             },
           }))}

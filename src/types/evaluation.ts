@@ -5,7 +5,7 @@
 
 import type { ConfusionMatrixValues, RocPoint } from "./benchmarking";
 
-// ── Qualitative evaluation ─────────────────────────────────────────────────────
+// ── Qualitative evaluation ───────
 
 export type QualitativeGrade = "PASS" | "PARTIAL" | "FAIL";
 
@@ -31,7 +31,7 @@ export interface QualitativeEvaluation {
   dimensions: QualitativeDimension[];
 }
 
-// ── Live phase progress (bridge: backend PhaseResult → component CaseProgress) ──
+// ── Live phase progress (bridge: backend PhaseResult -> component CaseProgress) ──
 
 export interface LivePhaseStatus {
   phaseId: string;
@@ -56,7 +56,7 @@ export interface LiveCaseProgress {
   completedAt: Date | null;
 }
 
-// ── Streaming / parse lifecycle ────────────────────────────────────────────────
+// ── Streaming / parse lifecycle ─────────
 
 export interface EvaluationStreamState {
   lastParsedAt: Date | null;

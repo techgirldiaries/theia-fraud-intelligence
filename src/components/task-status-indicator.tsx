@@ -7,7 +7,7 @@ import {
   Play,
 } from "lucide-react";
 
-type TaskStatus =
+export type TaskStatus =
   | "not-started"
   | "idle"
   | "paused"
